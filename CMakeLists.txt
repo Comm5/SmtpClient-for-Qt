@@ -18,7 +18,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 option(SMTPMIME_EXAMPES "Build examples" ON)
 option(SMTPMIME_STATIC "Build library static" OFF)
 
-find_package( Qt5 REQUIRED COMPONENTS Core Network OPTIONAL_COMPONENTS Widgets)
+find_package( Qt6 COMPONENTS Core Network OPTIONAL_COMPONENTS Widgets QUIET)
+if (NOT Qt6_FOUND)
+	find_package( Qt5 REQUIRED COMPONENTS Core Network OPTIONAL_COMPONENTS Widgets )
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
@@ -76,7 +79,7 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME}
-     PUBLIC Qt5::Core Qt5::Network
+     PUBLIC Qt::Core Qt::Network
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_include_directories(${PROJECT_NAME} PUBLIC src)
