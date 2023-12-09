@@ -34,7 +34,7 @@ MimeMessage::MimeMessage(bool createAutoMimeContent) :
     hEncoding(MimePart::_8Bit)
 {
     this->mimeContentAutoCreated = createAutoMimeContent;
-    if (createAutoMimeContent) {
+    if (mimeContentAutoCreated) {
         this->content = new MimeMultiPart();
     }
 }
