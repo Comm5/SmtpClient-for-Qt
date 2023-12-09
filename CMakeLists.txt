@@ -15,7 +15,7 @@ set(CMAKE_AUTOMOC ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-option(SMTPMIME_EXAMPES "Build examples" ON)
+option(SMTPMIME_EXAMPLES "Build examples" ON)
 option(SMTPMIME_STATIC "Build library static" OFF)
 
 find_package( Qt6 COMPONENTS Core Network OPTIONAL_COMPONENTS Widgets QUIET)
@@ -65,11 +65,19 @@ set(SOURCES
 )
 
 if (NOT SMTPMIME_STATIC)
+    # Building a shared library
     add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 
     target_compile_definitions(${PROJECT_NAME}
 	    PRIVATE SMTP_MIME_LIBRARY
     )
+    target_link_libraries(${PROJECT_NAME}
+        PUBLIC Qt::Core Qt::Network
+    )
+
+    set(CMAKE_SKIP_BUILD_RPATH FALSE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH “${ORIGIN}”)
 else()
     add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 
@@ -78,9 +86,7 @@ else()
     )
 endif()
 
-target_link_libraries(${PROJECT_NAME}
-     PUBLIC Qt::Core Qt::Network
-)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_include_directories(${PROJECT_NAME} PUBLIC src)
 

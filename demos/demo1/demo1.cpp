@@ -9,12 +9,6 @@ int main(int argc, char *argv[])
 
     // This is a first demo application of the SmtpClient for Qt project
 
-
-    // First we need to create an SmtpClient object
-    // We will use the Gmail's smtp server (smtp.gmail.com, port 465, ssl)
-
-    SmtpClient smtp("smtp.gmail.com", 465, SmtpClient::SslConnection);
-
     // Now we create a MimeMessage object. This is the email.
 
     MimeMessage message;
