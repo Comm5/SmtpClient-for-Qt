@@ -17,6 +17,7 @@
 #include <QtCore>
 
 #include "../../src/SmtpMime"
+#include "../demo_vars.h"
 
 int main(int argc, char *argv[])
 {
@@ -25,10 +26,10 @@ int main(int argc, char *argv[])
     // Create a MimeMessage
     MimeMessage message;
 
-    EmailAddress sender("your_email_address@host.com", "Your Name");
+    EmailAddress sender(SENDER_EMAIL, SENDER_NAME);
     message.setSender(sender);
 
-    EmailAddress to("recipient@host.com", "Recipient's Name");
+    EmailAddress to(RECIPIENT_EMAIL, RECIPIENT_NAME);
     message.addRecipient(to);
 
     message.setSubject("SmtpClient for Qt - Demo");
@@ -39,7 +40,8 @@ int main(int argc, char *argv[])
     message.addPart(&text);
 
     // Now we create the attachment object
-    MimeAttachment attachment (new QFile("image1.jpg"));
+    QFile imageFile("image1.jpg");
+    MimeAttachment attachment(&imageFile);
 
     // the file type can be setted. (by default is application/octet-stream)
     attachment.setContentType("image/jpg");
@@ -48,27 +50,28 @@ int main(int argc, char *argv[])
     message.addPart(&attachment);
 
     // Add an another attachment
-    MimeAttachment document(new QFile("document.pdf"));
-    message.addPart(&document);
+    QFile document("document.pdf");
+    MimeAttachment documentAttachment(&document);
+    message.addPart(&documentAttachment);
 
     // Now we can send the mail
-    SmtpClient smtp("smtp.gmail.com", 465, SmtpClient::SslConnection);
+    SmtpClient smtp(SMTP_SERVER, 465, SmtpClient::SslConnection);
 
     smtp.connectToHost();
     if (!smtp.waitForReadyConnected()) {
-        qDebug() << "Failed to connect to host!" << endl;
+        qDebug() << "Failed to connect to host!";
         return -1;
     }
 
-    smtp.login("your_email_address@host.com", "your_password");
+    smtp.login(SENDER_EMAIL, SENDER_PASSWORD);
     if (!smtp.waitForAuthenticated()) {
-        qDebug() << "Failed to login!" << endl;
+        qDebug() << "Failed to login!";
         return -2;
     }
 
     smtp.sendMail(message);
     if (!smtp.waitForMailSent()) {
-        qDebug() << "Failed to send mail!" << endl;
+        qDebug() << "Failed to send mail!";
         return -3;
     }
 
