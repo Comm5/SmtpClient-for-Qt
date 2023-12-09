@@ -1,6 +1,7 @@
 #include <QtCore>
 
 #include "../../src/SmtpMime"
+#include "../demo_vars.h"
 
 int main(int argc, char *argv[])
 {
@@ -18,10 +19,10 @@ int main(int argc, char *argv[])
 
     MimeMessage message;
 
-    EmailAddress sender("your_email_address@host.com", "Your Name");
+    EmailAddress sender(SENDER_EMAIL, SENDER_NAME);
     message.setSender(sender);
 
-    EmailAddress to("recipient@host.com", "Recipient's Name");
+    EmailAddress to(RECIPIENT_EMAIL, RECIPIENT_NAME);
     message.addRecipient(to);
 
     message.setSubject("SmtpClient for Qt - Demo");
@@ -38,20 +39,25 @@ int main(int argc, char *argv[])
     message.addPart(&text);
 
     // Now we can send the mail
+    SmtpClient smtp(SMTP_SERVER, 465, SmtpClient::SslConnection);
+
     smtp.connectToHost();
     if (!smtp.waitForReadyConnected()) {
-        qDebug() << "Failed to connect to host!" << endl;
+        qDebug() << "Failed to connect to host!";
         return -1;
     }
 
-    // We need to set the username (your email address) and password
-    // for smtp authentication.
+    smtp.login(SENDER_EMAIL, SENDER_PASSWORD);
+    if (!smtp.waitForAuthenticated()) {
+        qDebug() << "Failed to login!";
+        return -2;
+    }
 
     smtp.login("your_email_address@host.com", "your_password");
     smtp.sendMail(message);
 
     if (!smtp.waitForMailSent()) {
-        qDebug() << "Failed to send mail!" << endl;
+        qDebug() << "Failed to send mail!";
         return -3;
     }
     

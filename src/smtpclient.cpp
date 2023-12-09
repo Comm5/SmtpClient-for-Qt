@@ -73,7 +73,7 @@ SmtpClient::SmtpClient(const QString & host, int port, ConnectionType connection
 
     connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
             this, SLOT(socketStateChanged(QAbstractSocket::SocketState)));
-    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
+    connect(socket, SIGNAL(errorOccurred(QAbstractSocket::SocketError)),
             this, SLOT(socketError(QAbstractSocket::SocketError)));
     connect(socket, SIGNAL(readyRead()),
             this, SLOT(socketReadyRead()));
@@ -203,7 +203,7 @@ void SmtpClient::sendMail(const MimeMessage & email)
 
 void SmtpClient::quit()
 {
-    changeState(DisconnectingState);
+    changeState(_QUITTING_State);
 }
 
 void SmtpClient::reset()
@@ -279,6 +279,17 @@ void SmtpClient::ignoreSslErrors()
         sslSocket->ignoreSslErrors();
 }
 
+bool SmtpClient::waitForDisconnected(int msec)
+{
+
+    if (!isReadyConnected)
+        return false;
+
+    waitForEvent(msec, SIGNAL(disconnected()));
+
+    return !isReadyConnected;
+}
+
 /* [3] --- */
 
 
@@ -335,9 +346,22 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
         changeState(_MAIL_0_FROM);
         break;
 
-    case DisconnectingState:
+    case _QUITTING_State:
         sendMessage("QUIT");
+        break;
+
+    case DisconnectingState:
+
+        // Server should disconnect after sending reply to QUIT command, but disconnecting here takes care of a non-compliantserver.
         socket->disconnectFromHost();
+        isReadyConnected = false;
+        break;
+
+    case UnconnectedState:
+        isReadyConnected = false;
+        isAuthenticated = false;
+
+        emit disconnected();
         break;
 
     case ResetState:
@@ -381,8 +405,8 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
     /* --- AUTH --- */
     case _AUTH_PLAIN_0:
         // Sending command: AUTH PLAIN base64('\0' + username + '\0' + password)
-        sendMessage("AUTH PLAIN " + QByteArray().append((char) 0).append(authInfo.username)
-                    .append((char) 0).append(authInfo.password).toBase64());
+        sendMessage("AUTH PLAIN " + QByteArray().append((char) 0).append(authInfo.username.toUtf8())
+                    .append((char) 0).append(authInfo.password.toUtf8()).toBase64());
         break;
 
     case _AUTH_LOGIN_0:
@@ -391,12 +415,12 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
 
     case _AUTH_LOGIN_1_USER:
         // Send the username in base64
-        sendMessage(QByteArray().append(authInfo.username).toBase64());
+        sendMessage(QByteArray().append(authInfo.username.toUtf8()).toBase64());
         break;
 
     case _AUTH_LOGIN_2_PASS:
         // Send the password in base64
-        sendMessage(QByteArray().append(authInfo.password).toBase64());
+        sendMessage(QByteArray().append(authInfo.password.toUtf8()).toBase64());
         break;
 
     case _READY_Authenticated:
@@ -500,6 +524,16 @@ void SmtpClient::processResponse() {
         changeState((connectionType != TlsConnection) ? _READY_Connected : _TLS_State);
         break;
 
+    case _QUITTING_State:
+        // The response code needs to be 221.
+        if (responseCode != 221) {
+            emitError(ClientError);
+            return;
+        }
+        changeState(DisconnectingState);
+
+        break;
+
     /* --- TLS --- */
     case _TLS_0_STARTTLS:
         // The response code needs to be 220.
@@ -599,8 +633,8 @@ void SmtpClient::sendMessage(const QString &text)
 #endif
     responseText.clear();
 
-    socket->flush();
     socket->write(text.toUtf8() + "\r\n");
+    socket->flush();
 }
 
 void SmtpClient::emitError(SmtpClient::SmtpError e)
@@ -614,9 +648,9 @@ void SmtpClient::waitForEvent(int msec, const char *successSignal)
     QObject::connect(this, successSignal, &loop, SLOT(quit()));
     QObject::connect(this, SIGNAL(error(SmtpClient::SmtpError)), &loop, SLOT(quit()));
 
+    QTimer timer;
     if(msec > 0)
     {
-        QTimer timer;
         timer.setSingleShot(true);
         connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
         timer.start(msec);
@@ -672,6 +706,11 @@ void SmtpClient::socketReadyRead()
 {
     QString responseLine;
 
+    if (!socket->isOpen()) {
+        emitError(SocketError);
+        return;
+    }
+
     while (socket->canReadLine()) {
         // Save the server's response
         responseLine = socket->readLine();
@@ -685,7 +724,7 @@ void SmtpClient::socketReadyRead()
 
 
     // Is this the last line of the response
-    if (responseLine[3] == ' ') {
+    if (responseLine.length() > 3 && responseLine[3] == ' ') {
         responseText = tempResponse;
         tempResponse.clear();
 

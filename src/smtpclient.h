@@ -82,6 +82,8 @@ public:
         _READY_MailSent = 54,
         _READY_Encrypted = 55,
 
+        _QUITTING_State = 56,
+
         /* Internal Substates */
 
         // TLS
@@ -142,9 +144,6 @@ public:
     void quit();
     void reset();
 
-    bool isConnected();
-    bool isLogged();
-
     bool waitForReadyConnected(int msec = 30000);
     bool waitForAuthenticated(int msec = 30000);
     bool waitForMailSent(int msec = 30000);
@@ -154,6 +153,8 @@ public:
 
 public slots:
     void ignoreSslErrors();
+    bool waitForDisconnected(int msec = 30000);
+
     /* [3] --- */
 
 protected:
