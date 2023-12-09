@@ -277,6 +277,8 @@ void SmtpClient::ignoreSslErrors()
     auto sslSocket = qobject_cast<QSslSocket*>(socket);
     if (sslSocket)
         sslSocket->ignoreSslErrors();
+}
+
 bool SmtpClient::waitForDisconnected(int msec)
 {
 

@@ -55,8 +55,8 @@ MimePart& MimeMessage::getContent() {
 }
 
 void MimeMessage::setContent(MimePart* content) {
-    if (this->autoMimeContentCreated) {
-        this->autoMimeContentCreated = false;
+    if (this->mimeContentAutoCreated) {
+        this->mimeContentAutoCreated = false;
         delete this->content;
     }
     this->content = content;
