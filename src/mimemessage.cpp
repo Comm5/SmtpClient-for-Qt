@@ -33,16 +33,17 @@ MimeMessage::MimeMessage(bool createAutoMimeContent) :
     content(Q_NULLPTR),
     hEncoding(MimePart::_8Bit)
 {
-    if (createAutoMimeContent)
-        content = new MimeMultiPart();
-
-    autoMimeContentCreated = createAutoMimeContent;
+    this->mimeContentAutoCreated = createAutoMimeContent;
+    if (createAutoMimeContent) {
+        this->content = new MimeMultiPart();
+    }
 }
 
 MimeMessage::~MimeMessage()
 {
-    if (this->autoMimeContentCreated)
-        delete content;
+    if (this->mimeContentAutoCreated) {
+        delete this->content;
+    }
 }
 
 /* [1] --- */
@@ -164,7 +165,7 @@ QString MimeMessage::toString() const {
 QByteArray MimeMessage::formatAddress(const EmailAddress &address, MimePart::Encoding encoding) {
     QByteArray result;
     result.append(format(address.getName(), encoding));
-    result.append(" <" + address.getAddress() + ">");
+    result.append((" <" + address.getAddress() + ">").toUtf8());
     return result;
 }
 

@@ -19,6 +19,7 @@
 #ifndef MIMEMESSAGE_H
 #define MIMEMESSAGE_H
 
+#include <QObject>
 #include <QStringList>
 #include <QTextStream>
 
@@ -90,7 +91,7 @@ protected:
     QString subject;
     QStringList customHeaders;
     MimePart *content;
-    bool autoMimeContentCreated;
+    bool mimeContentAutoCreated;
 
     MimePart::Encoding hEncoding;
 
