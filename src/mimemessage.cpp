@@ -165,7 +165,7 @@ QString MimeMessage::toString() const {
 QByteArray MimeMessage::formatAddress(const EmailAddress &address, MimePart::Encoding encoding) {
     QByteArray result;
     result.append(format(address.getName(), encoding));
-    result.append((" <" + address.getAddress() + ">").toUtf8());
+    result.append(QByteArrayLiteral(" <") + address.getAddress().toLocal8Bit() + QByteArrayLiteral(">"));
     return result;
 }
 
@@ -176,10 +176,10 @@ QByteArray MimeMessage::format(const QString &text, MimePart::Encoding encoding)
         switch (encoding)
         {
         case MimePart::Base64:
-            result.append(" =?utf-8?B?" + text.toUtf8().toBase64() + "?=");
+            result.append(QByteArrayLiteral(" =?utf-8?B?") + text.toUtf8().toBase64() + QByteArrayLiteral("?="));
             break;
         case MimePart::QuotedPrintable:
-            result.append(" =?utf-8?Q?" + QuotedPrintable::encode(text.toUtf8()).toLocal8Bit().replace(' ', "_").replace(':',"=3A") + "?=");
+            result.append(QByteArrayLiteral(" =?utf-8?Q?") + QuotedPrintable::encode(text.toUtf8()).replace(' ', "_").replace(':',"=3A") + "?=");
             break;
         default:
             result.append(" ").append(text.toLocal8Bit());
@@ -240,16 +240,16 @@ void MimeMessage::writeToDevice(QIODevice &out) const {
             switch (hEncoding)
             {
             case MimePart::Base64:
-                header.append(" =?utf-8?B?" + QByteArray().append(replyTo.getName()).toBase64() + "?=");
+                header.append(QByteArrayLiteral(" =?utf-8?B?") + QByteArray().append(replyTo.getName().toLocal8Bit()).toBase64() + QByteArrayLiteral("?="));
                 break;
             case MimePart::QuotedPrintable:
-                header.append(" =?utf-8?Q?" + QuotedPrintable::encode(QByteArray().append(replyTo.getName())).replace(' ', "_").replace(':',"=3A") + "?=");
+                header.append(QByteArrayLiteral(" =?utf-8?Q?") + QuotedPrintable::encode(QByteArray().append(replyTo.getName().toLocal8Bit())).replace(' ', "_").replace(':',"=3A") + QByteArrayLiteral("?="));
                 break;
             default:
-                header.append(" " + replyTo.getName());
+                header.append(QByteArrayLiteral(" ") + replyTo.getName().toLocal8Bit());
             }
         }
-        header.append(" <" + replyTo.getAddress() + ">\r\n");
+        header.append(QByteArrayLiteral(" <") + replyTo.getAddress().toLocal8Bit() + QByteArrayLiteral(">\r\n"));
     }
 
     /* ---------------------------------- */

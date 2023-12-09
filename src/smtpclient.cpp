@@ -347,7 +347,7 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
         break;
 
     case _QUITTING_State:
-        sendMessage("QUIT");
+        sendMessage(QLatin1String("QUIT"));
         break;
 
     case DisconnectingState:
@@ -365,7 +365,7 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
         break;
 
     case ResetState:
-        sendMessage("RSET");
+        sendMessage(QLatin1String("RSET"));
         break;
 
     case _EHLO_State:
@@ -386,7 +386,7 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
 
     case _TLS_0_STARTTLS:
         // send a request to start TLS handshake
-        sendMessage("STARTTLS");
+        sendMessage(QLatin1String("STARTTLS"));
         break;
 
     case _TLS_1_ENCRYPT:
@@ -405,22 +405,22 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
     /* --- AUTH --- */
     case _AUTH_PLAIN_0:
         // Sending command: AUTH PLAIN base64('\0' + username + '\0' + password)
-        sendMessage("AUTH PLAIN " + QByteArray().append((char) 0).append(authInfo.username.toUtf8())
+        sendMessage(QByteArray("AUTH PLAIN ") + QByteArray().append((char) 0).append(authInfo.username.toUtf8())
                     .append((char) 0).append(authInfo.password.toUtf8()).toBase64());
         break;
 
     case _AUTH_LOGIN_0:
-        sendMessage("AUTH LOGIN");
+        sendMessage(QLatin1String("AUTH LOGIN"));
         break;
 
     case _AUTH_LOGIN_1_USER:
         // Send the username in base64
-        sendMessage(QByteArray().append(authInfo.username.toUtf8()).toBase64());
+        sendMessage(authInfo.username.toUtf8().toBase64());
         break;
 
     case _AUTH_LOGIN_2_PASS:
         // Send the password in base64
-        sendMessage(QByteArray().append(authInfo.password.toUtf8()).toBase64());
+        sendMessage(authInfo.password.toUtf8().toBase64());
         break;
 
     case _READY_Authenticated:
@@ -432,7 +432,7 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
 
     /* --- MAIL --- */
     case _MAIL_0_FROM:
-        sendMessage("MAIL FROM:<" + email->getSender().getAddress() + ">");
+        sendMessage("MAIL FROM:<" + email->getSender().getAddress().toLocal8Bit() + ">");
         break;
 
     case _MAIL_1_RCPT_INIT:
@@ -468,7 +468,7 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
         break;
 
     case _MAIL_3_DATA:
-        sendMessage("DATA");
+        sendMessage(QLatin1String("DATA"));
         break;
 
     case _MAIL_4_SEND_DATA:
@@ -478,7 +478,7 @@ void SmtpClient::changeState(SmtpClient::ClientState state) {
         qDebug() << "[Socket] OUT:";
         qDebug() << email->toString();
 #endif
-        sendMessage("\r\n.");
+        sendMessage(QLatin1String("\r\n."));
         break;
 
     case _READY_MailSent:
@@ -625,16 +625,21 @@ void SmtpClient::processResponse() {
     }
 }
 
-void SmtpClient::sendMessage(const QString &text)
+void SmtpClient::sendMessage(const QByteArray& utf8text)
 {
 
 #ifndef QT_NO_DEBUG
-    qDebug() << "[Socket] OUT:" << text;
+    qDebug() << "[Socket] OUT:" << utf8text;
 #endif
     responseText.clear();
 
-    socket->write(text.toUtf8() + "\r\n");
     socket->flush();
+    socket->write(utf8text + QByteArrayLiteral("\r\n"));
+}
+
+void SmtpClient::sendMessage(const QString &text)
+{
+    sendMessage(text.toUtf8());
 }
 
 void SmtpClient::emitError(SmtpClient::SmtpError e)

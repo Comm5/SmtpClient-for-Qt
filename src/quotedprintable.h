@@ -24,7 +24,7 @@
 #include "smtpmime_global.h"
 
 namespace QuotedPrintable {
-    SMTP_MIME_EXPORT QString encode(const QByteArray &input);
+    SMTP_MIME_EXPORT QByteArray encode(const QByteArray &input);
     SMTP_MIME_EXPORT QByteArray decode(const QString &input);
 }
 

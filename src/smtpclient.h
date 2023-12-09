@@ -206,6 +206,7 @@ protected:
     void setConnectionType(ConnectionType ct);
     void changeState(ClientState state);
     void processResponse();
+    void sendMessage(const QByteArray& utf8text);
     void sendMessage(const QString &text);
     void emitError(SmtpClient::SmtpError e);
     void waitForEvent(int msec, const char *successSignal);

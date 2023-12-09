@@ -14,6 +14,7 @@ SET(CMAKE_COLOR_MAKEFILE ON)
 set(CMAKE_AUTOMOC ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+include(FeatureSummary)
 
 option(SMTPMIME_EXAMPLES "Build examples" ON)
 option(SMTPMIME_STATIC "Build library static" OFF)
@@ -101,3 +102,7 @@ write_basic_package_version_file( ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Con
 if(SMTPMIME_EXAMPLES)
     add_subdirectory(demos)
 endif()
+
+feature_summary(WHAT ENABLED_FEATURES DISABLED_FEATURES INCLUDE_QUIET_PACKAGES VAR enabledFeaturesText)
+message(STATUS "${enabledFeaturesText}")
+print_enabled_features()
