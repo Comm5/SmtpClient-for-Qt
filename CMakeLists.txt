@@ -1,14 +1,16 @@
 # -DSmtpMime_EXAMPLES=[true|false]
 #  Build the examples.
 #  Default=true
+cmake_minimum_required(VERSION 3.16.0)
+
+project(SmtpMime VERSION 2.0.0 LANGUAGES CXX)
+
 
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
 
-project(SmtpMime VERSION 2.0.0 LANGUAGES CXX)
 
-cmake_minimum_required(VERSION 3.16.0)
 SET(CMAKE_COLOR_MAKEFILE ON)
 #SET(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_AUTOMOC ON)
@@ -116,4 +118,4 @@ endif()
 
 feature_summary(WHAT ENABLED_FEATURES DISABLED_FEATURES INCLUDE_QUIET_PACKAGES VAR enabledFeaturesText)
 message(STATUS "${enabledFeaturesText}")
-print_enabled_features()
+feature_summary(WHAT ENABLED_FEATURES DESCRIPTION "Enabled features:")
