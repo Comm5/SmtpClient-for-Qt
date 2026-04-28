@@ -44,38 +44,45 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(HEADERS
     src/emailaddress.h
     src/mimeattachment.h
+    src/mimebase64encoder.h
+    src/mimebase64formatter.h
+    src/mimebytearrayattachment.h
+    src/mimecontentencoder.h
+    src/mimecontentformatter.h
     src/mimefile.h
     src/mimehtml.h
     src/mimeinlinefile.h
     src/mimemessage.h
     src/mimepart.h
+    src/mimeqpencoder.h
+    src/mimeqpformatter.h
     src/mimetext.h
+    src/mimemultipart.h
+    src/quotedprintable.h
     src/smtpclient.h
     src/SmtpMime
-    src/quotedprintable.h
-    src/mimemultipart.h
-    src/mimecontentformatter.h
     src/smtpmime_global.h
 )
 
 set(SOURCES
     src/emailaddress.cpp
     src/mimeattachment.cpp
+    src/mimebase64encoder.cpp
+    src/mimebase64formatter.cpp
+    src/mimebytearrayattachment.cpp
+    src/mimecontentencoder.cpp
+    src/mimecontentformatter.cpp
     src/mimefile.cpp
     src/mimehtml.cpp
     src/mimeinlinefile.cpp
     src/mimemessage.cpp
-    src/mimepart.cpp
-    src/mimetext.cpp
-    src/smtpclient.cpp
-    src/quotedprintable.cpp
     src/mimemultipart.cpp
-    src/mimecontentencoder.cpp
-    src/mimebase64encoder.cpp
+    src/mimepart.cpp
     src/mimeqpencoder.cpp
     src/mimeqpformatter.cpp
-    src/mimebase64formatter.cpp
-    src/mimecontentformatter.cpp
+    src/mimetext.cpp
+    src/quotedprintable.cpp
+    src/smtpclient.cpp
 )
 
 if (NOT SMTPMIME_STATIC)
@@ -102,7 +109,11 @@ endif()
 
 
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
-target_include_directories(${PROJECT_NAME} PUBLIC src)
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+)
 
 if(WIN32)
     set(CMAKE_DEBUG_POSTFIX "d")
@@ -111,6 +122,41 @@ endif()
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file( ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake VERSION ${PROJECT_VERSION} COMPATIBILITY SameMajorVersion)
+
+include(GNUInstallDirs)
+
+install(
+    TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}Targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(
+    FILES ${HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+)
+
+install(
+    EXPORT ${PROJECT_NAME}Targets
+    FILE ${PROJECT_NAME}Targets.cmake
+    NAMESPACE ${PROJECT_NAME}::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
 
 if(SMTPMIME_EXAMPLES)
     add_subdirectory(demos)

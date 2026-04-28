@@ -35,7 +35,8 @@ SOURCES += \
     mimeqpencoder.cpp \
     mimeqpformatter.cpp \
     mimebase64formatter.cpp \
-    mimecontentformatter.cpp
+    mimecontentformatter.cpp \
+    mimebytearrayattachment.cpp
 
 HEADERS  += \
     emailaddress.h \
@@ -56,7 +57,8 @@ HEADERS  += \
     mimeqpencoder.h \
     mimeqpformatter.h \
     mimebase64formatter.h \
-    mimecontentformatter.h
+    mimecontentformatter.h \
+    mimebytearrayattachment.h
 
 OTHER_FILES += \
     LICENSE \
